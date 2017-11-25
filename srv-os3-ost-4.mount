@@ -1,0 +1,9 @@
+[Unit]
+Description=Mount MDTs and OSTs
+After=lustre.service
+
+[Mount]
+What=/dev/sde
+Where=/srv/os3/ost/4
+Type=lustre
+Options=defaults

@@ -1,0 +1,8 @@
+[Unit]
+Description=Mount MDTs and OSTs
+
+[Mount]
+What=/dev/sdh2
+Where=/srv/os3/mdt
+Type=lustre
+Options=defaults
