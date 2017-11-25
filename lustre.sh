@@ -5,7 +5,7 @@ declare mount_path mtab
 
 
 mounts=(["ost/1"]="sdb" ["ost/2"]="sdc" ["ost/3"]="sdd" ["ost/4"]="sde" ["ost/5"]="sdf" ["ost/6"]="sdg"
-        ["mdt"]="sdh")
+        ["mdt"]="sdh2")
 mtab=($(< /etc/mtab))
 mount_option=$1
 if [[ -z $2 ]]; then
