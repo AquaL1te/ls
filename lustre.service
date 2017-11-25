@@ -1,0 +1,9 @@
+[Unit]
+Description=Mount Lustre MDTs and OSTs
+Wants=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/lustre.sh mount
+ExecStop=/usr/local/sbin/lustre.sh umount
+Restart=on-failure
