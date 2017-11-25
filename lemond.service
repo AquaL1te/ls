@@ -1,0 +1,9 @@
+[Unit]
+Description=Lemon (Lustre Monitoring)
+Wants=network.target
+After=lustre.service
+
+[Service]
+ExecStart=/usr/local/sbin/lemon.py start
+ExecStop=/usr/local/sbin/lemon.py stop
+Restart=on-failure
