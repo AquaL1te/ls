@@ -1,6 +1,6 @@
 [Unit]
 Description=Mount MDTs and OSTs
-After=lustre.service
+After=srv-os3-mdt.mount
 
 [Mount]
 What=/dev/sde
