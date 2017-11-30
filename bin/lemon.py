@@ -9,16 +9,23 @@ from daemon import Daemon
 
 
 class Lemon(Daemon):
-    def __init__(self, regex, metric_map, pid):
+    """
+    This daemonized class instance will periodically check certain kernel interfaces in /proc
+    for Lustre I/O metrics and relates these to SLURM job IDs. Check lemon.ini to make changes
+    to the instance parameters like server and metric settings.
+    """
+    def __init__(self, regexp, metric_map, pid):
         Daemon.__init__(self, pid, stdin="/dev/null", stdout="/dev/null", stderr="/dev/null")
-        self.regex = regex
+        self.regexp = regexp
         self.metric_map = metric_map
-        self.content = ""
-        self.read_config("./lemon.ini")
+        self.read_config("/usr/local/etc/lemon.ini")
         self.scan_directory()
 
 
     def run(self):
+        """
+        Start daemonizing the instance.
+        """
         if self.config.get("sampling", "interval"):
             interval = int(self.config.get("sampling", "interval"))
             self.logger.debug("Sample rate configuration: %i" % (interval))
@@ -45,6 +52,10 @@ class Lemon(Daemon):
 
 
     def read_config(self, config_src):
+        """
+        Read out the lemon.ini config which will be used for
+        dynamic environment variables.
+        """
         self.config = ConfigParser.ConfigParser()
         try:
             self.config.readfp(open(config_src))
@@ -56,6 +67,9 @@ class Lemon(Daemon):
 
 
     def start_logging(self):
+        """
+        Start logging (file rotation enabled), based on the settings in lemon.ini.
+        """
         log_file = self.config.get("logging", "log_file")
         max_size = self.config.get("logging", "max_size")
         backup_count = self.config.get("logging", "backup_count")
@@ -84,6 +98,10 @@ class Lemon(Daemon):
 
 
     def scan_directory(self):
+        """
+        Walk through the directories listed in lemon.ini and pass it to the
+        method that will read the content of the 'job_stats' data.
+        """
         lustre_paths = self.config.get("lustre", "lustre_paths")
         lustre_paths = lustre_paths.split()
         for lustre_path in lustre_paths:
@@ -95,6 +113,10 @@ class Lemon(Daemon):
 
 
     def read_metrics(self, lustre_path, directory):
+        """
+        Read out the content of 'job_stats' and pass through the data to be
+        parsed.
+        """
         self.logger.debug("Reading metrics in %s%s" % (lustre_path, directory))
         with open(lustre_path + directory + "/job_stats", "r+w") as job_stats:
             self.content = job_stats.read()
@@ -104,7 +126,11 @@ class Lemon(Daemon):
 
 
     def parse_metrics(self, directory):
-        matches = self.regex.findall(self.content)
+        """
+        Parse the received data with a regexp and pack it into a list of dicts,
+        which is then passed to be send to OpenTSDB.
+        """
+        matches = self.regexp.findall(self.content)
         metric_prefix = self.config.get("opentsdb", "metric_prefix")
         metric_dicts = []
         for match in matches:
@@ -125,9 +151,10 @@ class Lemon(Daemon):
 
 
     def send_metrics(self, metric_dicts):
-        metric_lustre_path = self.config.get("lustre", "lustre_paths")
-        server = self.config.get("opentsdb", "server")
-        port = self.config.get("opentsdb", "port")
+        """
+        If the received list contains elements, it's converted to JSON and send
+        to OpenTSDB via a HTTP POST message.
+        """
         if metric_dicts:
             try:
                 self.tsdbcon.request("POST","/api/put",json(metric_dicts))
@@ -147,22 +174,26 @@ class Lemon(Daemon):
 
 if __name__ == "__main__":
     """
+    The regexp filters out the following fields. An 'overlay' structure called metric_map in turn
+    maps the index of the regex to the metric_name. Which is used in the JSON data structure, sent
+    to OpenTSDB.
+
     ('72',  '1511963334',  '1',        'bytes', '4096', '4096', '4096', '0',         'bytes', '0', '0', '0')
     job_id, snapshot_time, read_bytes, unit,    min,    max,    sum,    write_bytes, unit,    min, max, sum
     0       1              2           3        4       5       6       7            8        9    10   11
     """
-    regex = re.compile(r'^-\sjob_id:\s+(\d+)\n'
-                       r'\s+snapshot_time:\s+(\d+)\n'
-                       r'\s+read_bytes.*samples:\s+(\d+)'
-                       r',\sunit:\s(\w+)'
-                       r',\smin:\s+(\d+)'
-                       r',\smax:\s+(\d+)'
-                       r',\ssum:\s+(\d+).*\n'
-                       r'\s+write_bytes.*samples:\s+(\d+)'
-                       r',\sunit:\s(\w+)'
-                       r',\smin:\s+(\d+)'
-                       r',\smax:\s+(\d+)'
-                       r',\ssum:\s+(\d+)*', re.MULTILINE)
+    regexp = re.compile(r'^-\sjob_id:\s+(\d+)\n'
+                        r'\s+snapshot_time:\s+(\d+)\n'
+                        r'\s+read_bytes.*samples:\s+(\d+)'
+                        r',\sunit:\s(\w+)'
+                        r',\smin:\s+(\d+)'
+                        r',\smax:\s+(\d+)'
+                        r',\ssum:\s+(\d+).*\n'
+                        r'\s+write_bytes.*samples:\s+(\d+)'
+                        r',\sunit:\s(\w+)'
+                        r',\smin:\s+(\d+)'
+                        r',\smax:\s+(\d+)'
+                        r',\ssum:\s+(\d+)*', re.MULTILINE)
     #metric_map = {0: "job_id", 1: "snapshot_time", 2: "read_bytes",
     #              3: "unit", 4: "min", 5: "max", 6: "sum",
     #              7: "write_bytes", 8: "unit", 9: "min",
@@ -173,7 +204,7 @@ if __name__ == "__main__":
     pid = os.path.basename(__file__)
     pid = pid.split(".")[0]
     pid = "/run/%s.pid" % (pid)
-    daemon = Lemon(regex, metric_map, pid)
+    daemon = Lemon(regexp, metric_map, pid)
 
     if len(sys.argv) == 2:
         if "start" == sys.argv[1]:
