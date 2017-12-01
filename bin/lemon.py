@@ -171,7 +171,7 @@ class Lemon(Daemon):
                 self.logger.debug(metric)
 
 
-if __name__ == "__main__":
+def main():
     """
     The regexp filters out the following fields. An 'overlay' structure called metric_map in turn
     maps the index of the regex to the metric_name. Which is used in the JSON data structure, sent
@@ -219,3 +219,7 @@ if __name__ == "__main__":
     else:
         print("Usage: %s start|stop|restart" % (sys.argv[0]))
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
