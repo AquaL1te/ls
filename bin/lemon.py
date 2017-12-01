@@ -121,7 +121,6 @@ class Lemon(Daemon):
         with open(lustre_path + directory + "/job_stats", "r+w") as job_stats:
             self.content = job_stats.read()
             job_stats.write("clear\n")
-            job_stats.close()
         self.parse_metrics(directory)
 
 
