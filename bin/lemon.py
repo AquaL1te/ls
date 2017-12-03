@@ -127,7 +127,10 @@ class Lemon(Daemon):
     def parse_metrics(self, directory):
         """
         Parse the received data with a regexp and pack it into a list of dicts,
-        which is then passed to be send to OpenTSDB.
+        which is then passed to be send to OpenTSDB. The average value is
+        computed from {sum of values}/{count of events} this computation is
+        optional for the programmer since it isn't possible to do
+        floating-point math in the kernel.
         """
         matches = self.regexp.findall(self.content)
         metric_prefix = self.config.get("opentsdb", "metric_prefix")
@@ -139,9 +142,21 @@ class Lemon(Daemon):
             job_id = match[0]
             snapshot_time = match[1]
             for index, metric_name in self.metric_map.iteritems():
+                # Get the sample rate to compute the average read sum
+                if metric_name == "read_bytes.sum":
+                    metric_name = "read_bytes.avg"
+                    samples = int(match[2])
+                    # Prevent devide by 0
+                    if samples == 0: samples += 1
+                # Get the sample rate to compute the average write sum
+                elif metric_name == "write_bytes.sum":
+                    metric_name = "write_bytes.avg"
+                    samples = int(match[7])
+                    # Prevent devide by 0
+                    if samples == 0: samples += 1
                 metric_dict = {"timestamp": snapshot_time,
                                "metric": "%s.%s" % (metric_prefix, metric_name),
-                               "value": match[index],
+                               "value": float(match[index]) / samples,
                                "tags": {"fs": fs,
                                         "job_id": job_id,
                                         "dev": dev}}
