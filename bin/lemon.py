@@ -166,6 +166,7 @@ class Lemon(Daemon):
 
 
     def compile_metric_dict(self, metric_value, metric_name, match_dict, samples=1):
+        # The sum is accumulated over the period of the interval, so let's {sum of values}/{interval}
         if metric_name.endswith("sum"):
             interval = int(self.config.get("sampling", "interval"))
         else:
