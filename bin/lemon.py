@@ -166,9 +166,13 @@ class Lemon(Daemon):
 
 
     def compile_metric_dict(self, metric_value, metric_name, match_dict, samples=1):
+        if metric_name.endswith("sum"):
+            interval = int(self.config.get("sampling", "interval"))
+        else:
+            interval = 1
         metric_dict = {"timestamp": match_dict["snapshot_time"],
                        "metric": "%s.%s" % (match_dict["metric_prefix"], metric_name),
-                       "value": float(metric_value) / samples,
+                       "value": (float(metric_value) / samples) / interval,
                        "tags": {"fs": match_dict["fs"],
                                 "job_id": match_dict["job_id"],
                                 "dev": match_dict["dev"]}}
