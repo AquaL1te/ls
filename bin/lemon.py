@@ -127,26 +127,57 @@ class Lemon(Daemon):
     def parse_metrics(self, directory):
         """
         Parse the received data with a regexp and pack it into a list of dicts,
-        which is then passed to be send to OpenTSDB.
+        which is then passed to be send to OpenTSDB. The average value is
+        computed from {sum of values}/{count of events}, this computation is
+        left to the programmer since it isn't possible to do floating-point
+        math in the kernel.
         """
         matches = self.regexp.findall(self.content)
         metric_prefix = self.config.get("opentsdb", "metric_prefix")
         metric_dicts = []
         for match in matches:
             directory_s = directory.split("-")
-            fs = directory_s[0]
-            dev = directory_s[1]
-            job_id = match[0]
-            snapshot_time = match[1]
+            match_dict = {"fs": directory_s[0],
+                          "dev": directory_s[1],
+                          "job_id": match[0],
+                          "snapshot_time": match[1],
+                          "metric_prefix": metric_prefix}
             for index, metric_name in self.metric_map.iteritems():
-                metric_dict = {"timestamp": snapshot_time,
-                               "metric": "%s.%s" % (metric_prefix, metric_name),
-                               "value": match[index],
-                               "tags": {"fs": fs,
-                                        "job_id": job_id,
-                                        "dev": dev}}
-                metric_dicts.append(metric_dict)
+                if metric_name == "read_bytes.sum":
+                    # Send the read_bytes.sum unaltered
+                    metric_dicts.append(self.compile_metric_dict(match[index], metric_name, match_dict))
+                    # Rename metric_name, because we're now going to send the average of read_bytes.sum
+                    metric_name = "read_bytes.avg"
+                    # Get the sample rate to compute the average read sum
+                    samples = int(match[2])
+                elif metric_name == "write_bytes.sum":
+                    # Send the write_bytes.sum unaltered
+                    metric_dicts.append(self.compile_metric_dict(match[index], metric_name, match_dict))
+                    # Rename metric_name, because we're now going to send the average of write_bytes.sum
+                    metric_name = "write_bytes.avg"
+                    # Get the sample rate to compute the average write sum
+                    samples = int(match[7])
+                # Prevent devide by 0 and send remaining metric_map elements (including the sum averages)
+                if "samples" in locals() and samples != 0:
+                    metric_dicts.append(self.compile_metric_dict(match[index], metric_name, match_dict, samples))
+                else:
+                    metric_dicts.append(self.compile_metric_dict(match[index], metric_name, match_dict))
         self.send_metrics(metric_dicts)
+
+
+    def compile_metric_dict(self, metric_value, metric_name, match_dict, samples=1):
+        # The sum is accumulated over the period of the interval, so let's {sum of values}/{interval}
+        if metric_name.endswith("sum"):
+            interval = int(self.config.get("sampling", "interval"))
+        else:
+            interval = 1
+        metric_dict = {"timestamp": match_dict["snapshot_time"],
+                       "metric": "%s.%s" % (match_dict["metric_prefix"], metric_name),
+                       "value": (float(metric_value) / samples) / interval,
+                       "tags": {"fs": match_dict["fs"],
+                                "job_id": match_dict["job_id"],
+                                "dev": match_dict["dev"]}}
+        return(metric_dict)
 
 
     def send_metrics(self, metric_dicts):
@@ -177,9 +208,9 @@ def main():
     maps the index of the regex to the metric_name. Which is used in the JSON data structure, sent
     to OpenTSDB.
 
-    ('72',  '1511963334',  '1',        'bytes', '4096', '4096', '4096', '0',         'bytes', '0', '0', '0')
-    job_id, snapshot_time, read_bytes, unit,    min,    max,    sum,    write_bytes, unit,    min, max, sum
-    0       1              2           3        4       5       6       7            8        9    10   11
+    ('72',  '1511963334',  '1',          'bytes', '4096', '4096', '4096', '0',           'bytes', '0', '0', '0')
+    job_id, snapshot_time, read_samples, unit,    min,    max,    sum,    write_samples, unit,    min, max, sum
+    0       1              2             3        4       5       6       7              8        9    10   11
     """
     regexp = re.compile(r'^-\sjob_id:\s+(\d+)\n'
                         r'\s+snapshot_time:\s+(\d+)\n'
@@ -193,12 +224,12 @@ def main():
                         r',\smin:\s+(\d+)'
                         r',\smax:\s+(\d+)'
                         r',\ssum:\s+(\d+)*', re.MULTILINE)
-    #metric_map = {0: "job_id", 1: "snapshot_time", 2: "read_bytes",
+    #metric_map = {0: "job_id", 1: "snapshot_time", 2: "read_samples",
     #              3: "unit", 4: "min", 5: "max", 6: "sum",
-    #              7: "write_bytes", 8: "unit", 9: "min",
+    #              7: "write_samples", 8: "unit", 9: "min",
     #              10: "max", 11: "sum"}
-    metric_map = {2: "read_bytes", 4: "read_bytes.min", 5: "read_bytes.max", 6: "read_bytes.sum",
-                  7: "write_bytes", 9: "write_bytes.min", 10: "write_bytes.max", 11: "write_bytes.sum"}
+    metric_map = {2: "read_bytes.samples", 4: "read_bytes.min", 5: "read_bytes.max", 6: "read_bytes.sum",
+                  7: "write_bytes.samples", 9: "write_bytes.min", 10: "write_bytes.max", 11: "write_bytes.sum"}
 
     pid = os.path.basename(__file__)
     pid = pid.split(".")[0]
