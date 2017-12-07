@@ -8,7 +8,7 @@ if mkdir "$jobdir"
 then
   if cd "$jobdir"
   then
-    srun "$resourcedir/srun.sh"
+    srun "$resourcedir/srun.sh"		# Give either [read|write] as parameter
   else
     echo "Could not cd into the job directory"
     exit 1
