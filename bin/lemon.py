@@ -39,11 +39,14 @@ class Lemon(Daemon):
             self.tsdbcon = httplib.HTTPConnection("%s:%s" % (server, port))
             while True:
                 run_stamp = datetime.now()
+                # Check if time between the start timestamp and 'now' is less or equal than the interval
                 if (datetime.now() - start_stamp).seconds <= interval:
                     self.logger.debug("Running metric check on %s second interval" % (interval))
                     self.scan_directory()
+                # Calculate the run time of the above (to debug if the interval gave enough time to process)
                 runtime = datetime.now() - run_stamp
                 self.logger.debug("Loop runtime %s" % (runtime.microseconds))
+                # Start logging new start timestamp for new interval
                 start_stamp = datetime.now()
                 sleep(max(0,(interval*1000000-runtime.microseconds)/1000000.0))
         except:
