@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
-import re, os, sys, ConfigParser, logging, httplib
+import re, os, sys, ConfigParser, logging, httplib, time
 import logging.handlers as log_handler
 from json import dumps as json
-from time import sleep
 from datetime import datetime
 from daemon import Daemon
 
@@ -19,7 +18,7 @@ class Lemon(Daemon):
         self.regexp = regexp
         self.metric_map = metric_map
         self.read_config("/usr/local/etc/lemon.ini")
-        self.scan_directory()
+        #self.scan_directory()
 
 
     def run(self):
@@ -32,7 +31,7 @@ class Lemon(Daemon):
         else:
             self.logger.critical("Invalid sample rate configured")
             sys.exit(1)
-        start_stamp = datetime.now()
+        self.start_stamp = datetime.now()
         try:
             server = self.config.get("opentsdb", "server")
             port = self.config.get("opentsdb", "port")
@@ -40,15 +39,15 @@ class Lemon(Daemon):
             while True:
                 run_stamp = datetime.now()
                 # Check if time between the start timestamp and 'now' is less or equal than the interval
-                if (datetime.now() - start_stamp).seconds <= interval:
+                if (datetime.now() - self.start_stamp).seconds <= interval:
                     self.logger.debug("Running metric check on %s second interval" % (interval))
                     self.scan_directory()
                 # Calculate the run time of the above (to debug if the interval gave enough time to process)
                 runtime = datetime.now() - run_stamp
                 self.logger.debug("Loop runtime %s" % (runtime.microseconds))
                 # Start logging new start timestamp for new interval
-                start_stamp = datetime.now()
-                sleep(max(0,(interval*1000000-runtime.microseconds)/1000000.0))
+                self.start_stamp = datetime.now()
+                time.sleep(max(0,(interval*1000000-runtime.microseconds)/1000000.0))
         except:
             self.logger.exception("Could not send metrics to server (server unreachable?)")
         self.tsdbcon.close()
@@ -169,12 +168,19 @@ class Lemon(Daemon):
 
 
     def compile_metric_dict(self, metric_value, metric_name, match_dict, samples=1):
+        # Set timestamp based on daemon interval (correct total values in Grafana)
+        if self.config.getboolean("logging", "align_timestamps"):
+            timestamp = time.mktime(self.start_stamp.timetuple()) * 1000
+        # Set timestamp based on value in job_stats (inaccurate total values in Grafana)
+        else:
+            timestamp = match_dict["snapshot_time"]
         # The sum is accumulated over the period of the interval, so let's {sum of values}/{interval}
         if metric_name.endswith("sum"):
             interval = int(self.config.get("sampling", "interval"))
         else:
             interval = 1
-        metric_dict = {"timestamp": match_dict["snapshot_time"],
+        #metric_dict = {"timestamp": match_dict["snapshot_time"],
+        metric_dict = {"timestamp": timestamp,
                        "metric": "%s.%s" % (match_dict["metric_prefix"], metric_name),
                        "value": (float(metric_value) / samples) / interval,
                        "tags": {"fs": match_dict["fs"],
