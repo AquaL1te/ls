@@ -18,7 +18,6 @@ class Lemon(Daemon):
         self.regexp = regexp
         self.metric_map = metric_map
         self.read_config("/usr/local/etc/lemon.ini")
-        #self.scan_directory()
 
 
     def run(self):
@@ -179,7 +178,6 @@ class Lemon(Daemon):
             interval = int(self.config.get("sampling", "interval"))
         else:
             interval = 1
-        #metric_dict = {"timestamp": match_dict["snapshot_time"],
         metric_dict = {"timestamp": timestamp,
                        "metric": "%s.%s" % (match_dict["metric_prefix"], metric_name),
                        "value": (float(metric_value) / samples) / interval,
