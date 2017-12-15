@@ -170,7 +170,7 @@ class Lemon(Daemon):
     def compile_metric_dict(self, metric_value, metric_name, match_dict, samples=1):
         # Set timestamp based on daemon interval (correct total values in Grafana)
         if self.config.getboolean("sampling", "align_timestamps"):
-            timestamp = time.mktime(self.start_stamp.timetuple()) * 1000
+            timestamp = time.mktime(self.start_stamp.timetuple())
         # Set timestamp based on value in job_stats (inaccurate total values in Grafana)
         else:
             timestamp = match_dict["snapshot_time"]
