@@ -46,6 +46,7 @@ class Lemon(Daemon):
                 self.logger.debug("Loop runtime %s" % (runtime.microseconds))
                 # Start logging new start timestamp for new interval
                 self.start_stamp = datetime.now()
+                # Convert interval to miliseconds, subtract runtime (in miliseconds) and convert to seconds
                 time.sleep(max(0,(interval*1000000-runtime.microseconds)/1000000.0))
         except:
             self.logger.exception("Could not send metrics to server (server unreachable?)")
