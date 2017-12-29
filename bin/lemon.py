@@ -168,6 +168,11 @@ class Lemon(Daemon):
 
 
     def compile_metric_dict(self, metric_value, metric_name, match_dict, samples=1):
+        """
+        This generic method is used to compute the averages for the sums and return
+        the results in a dictionary. The sum is only calculated when the sample rate
+        is declared at method invocation.
+        """
         # Set timestamp based on daemon interval (correct total values in Grafana)
         if self.config.getboolean("sampling", "align_timestamps"):
             timestamp = time.mktime(self.start_stamp.timetuple())
