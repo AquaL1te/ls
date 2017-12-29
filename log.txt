@@ -1,0 +1,29 @@
+2017-12-14 19:24:19,520 DEBUG Reading metrics in /proc/fs/lustre/mdt/os3-MDT0000
+2017-12-14 19:24:19,520 DEBUG Loop runtime 34797
+2017-12-14 19:24:29,495 DEBUG Running metric check on 10 second interval
+2017-12-14 19:24:29,496 DEBUG Reading metrics in /proc/fs/lustre/obdfilter/os3-OST0000
+2017-12-14 19:24:29,500 INFO 10 metrics send to OpenTSDB
+2017-12-14 19:24:29,501 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.samples', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,501 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.min', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,501 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.max', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,502 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.sum', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,502 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.avg', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,502 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.samples', 'value': 35.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,502 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.min', 'value': 2097152.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,503 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.max', 'value': 4194304.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,503 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.sum', 'value': 13421772.8, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}}
+2017-12-14 19:24:29,503 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.avg', 'value': 3834792.2285714285, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0000'}
+}
+2017-12-14 19:24:29,504 DEBUG Reading metrics in /proc/fs/lustre/obdfilter/os3-OST0001
+2017-12-14 19:24:29,507 INFO 10 metrics send to OpenTSDB
+2017-12-14 19:24:29,507 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.samples', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,508 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.min', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,508 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.max', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,508 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.sum', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,508 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.read_bytes.avg', 'value': 0.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,509 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.samples', 'value': 34.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,509 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.min', 'value': 2097152.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,509 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.max', 'value': 4194304.0, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,509 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.sum', 'value': 13421772.8, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+2017-12-14 19:24:29,510 DEBUG {'timestamp': 1513275859000.0, 'metric': 'lemon.write_bytes.avg', 'value': 3947580.2352941176, 'tags': {'fs': 'os3', 'job_id': '5054', 'dev': 'OST0001'}}
+}
